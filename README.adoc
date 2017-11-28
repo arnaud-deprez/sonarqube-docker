@@ -1,0 +1,28 @@
+= Sonarqube on Openshift
+
+This is based on the link:https://github.com/SonarSource/docker-sonarqube[official SonarQube image].
+
+== Prerequisites
+
+This assume you have run the link:http://bitbucket-nm.cfmu.corp.eurocontrol.int:7990/bitbucket/users/adeprez/repos/jenkins-docker/browse/README.adoc[jenkins' prerequisites]
+
+== Deployment on Openshift
+
+[source,shell]
+----
+oc project cicd
+version=6.7-alpine
+# Import the official image
+oc import-image sonarqube:${version} \
+    --from=yagi.cfmu.corp.eurocontrol.int:5000/library/sonarqube:${version} \
+    -n nes --reference-policy=local \
+    --insecure --confirm
+# Build the new image based on the imported image
+oc new-build http://bitbucket-nm.cfmu.corp.eurocontrol.int:7990/bitbucket/scm/~adeprez/sonarqube-docker.git \
+    -i nes/sonarqube:${version} \
+    --strategy=docker \
+    --to=sonarqube-nes:6.7-alpine \
+    --name=sonarqube-nes
+# Create the SonarQube deployment with PostgreSQL
+oc new-app -f sonarqube-postgresql-template.yml --param=SONARQUBE_VERSION=${version}
+----
