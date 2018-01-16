@@ -125,7 +125,7 @@ objects:
         - sonarqube
         from:
           kind: ImageStreamTag
-          name: sonarqube-nes:${SONARQUBE_VERSION}
+          name: sonarqube-ocp:${SONARQUBE_VERSION}
       type: ImageChange
 - apiVersion: v1
   kind: Service

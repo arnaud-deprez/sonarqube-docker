@@ -15,5 +15,5 @@ oc new-build https://github.com/arnaud-deprez/sonarqube-docker.git \
     --to=sonarqube-ocp:6.7-alpine \
     --name=sonarqube-ocp
 # Create the SonarQube deployment with PostgreSQL
-oc new-app -f openshift/sonarqube-postgresql-template.yml --param=SONARQUBE_VERSION=${version}
+oc new-app -f https://raw.githubusercontent.com/arnaud-deprez/sonarqube-docker/master/openshift/sonarqube-postgresql-template.yml --param=SONARQUBE_VERSION=${version}
 ```
