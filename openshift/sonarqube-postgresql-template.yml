@@ -100,8 +100,8 @@ objects:
             timeoutSeconds: 5
           resources:
             requests:
-              cpu: 200m
-              memory: 1Gi
+              cpu: 100m
+              memory: 256Mi
             limits:
               cpu: 1
               memory: 2Gi
