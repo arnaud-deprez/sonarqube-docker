@@ -1,4 +1,4 @@
-FROM sonarqube:7.0-alpine
+FROM sonarqube:7.1-alpine
 
 COPY bin/run.sh $SONARQUBE_HOME/bin/
 
