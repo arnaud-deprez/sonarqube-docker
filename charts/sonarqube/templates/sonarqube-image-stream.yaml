@@ -1,0 +1,10 @@
+{{- if eq "openshift" .Values.deployment.type -}}
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+{{ include "sonarqube.labels" . | indent 4 }}
+    build: sonarqube
+  name: {{ regexSplit "/" .Values.image.repository -1 | last | quote }}
+spec: {}
+{{- end }}

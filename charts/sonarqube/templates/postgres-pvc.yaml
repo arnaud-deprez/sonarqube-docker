@@ -1,0 +1,21 @@
+{{- if and .Values.postgresql.persistence.enabled (not .Values.postgresql.persistence.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: "{{ template "sonarqube.postgresql.fullname" . }}"
+  labels:
+{{ include "sonarqube.labels" . | indent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.postgresql.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.postgresql.persistence.size | quote }}
+{{- if .Values.postgresql.persistence.storageClass }}
+{{- if (eq "-" .Values.postgresql.persistence.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.postgresql.persistence.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end }}

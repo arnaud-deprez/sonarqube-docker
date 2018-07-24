@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "sonarqube.postgresql.fullname" . }}
+  labels:
+{{ include "sonarqube.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.postgresql.service.type }}
+  ports:
+  - name: postgresql
+    port: {{ .Values.postgresql.service.port }}
+    targetPort: postgresql
+  {{- if (and (eq .Values.postgresql.service.type "NodePort") (not (empty .Values.postgresql.service.nodePort))) }}
+    nodePort: {{ .Values.postgresql.service.nodePort }}
+  {{- end }}
+{{- if .Values.postgresql.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.postgresql.service.externalIPs | indent 4 }}
+{{- end }}
+  selector:
+    app: {{ template "sonarqube.postgresql.name" . }}
+    release: {{ .Release.Name }}

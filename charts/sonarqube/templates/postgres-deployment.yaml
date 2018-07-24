@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "sonarqube.postgresql.fullname" . }}
+  labels:
+{{ include "sonarqube.labels" . | indent 4 }}
+{{- with .Values.postgresql.deploymentAnnotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ template "sonarqube.postgresql.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "sonarqube.postgresql.name" . }}
+        release: {{ .Release.Name }}
+{{- with .Values.postgresql.podAnnotations }}
+      annotations:
+{{ toYaml . | indent 8 }}
+{{- end }}
+    spec:
+      {{- if .Values.postgresql.affinity }}
+      affinity:
+{{ toYaml .Values.postgresql.affinity | indent 8 }}
+      {{- end }}
+      {{- if .Values.postgresql.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.postgresql.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.postgresql.tolerations }}
+      tolerations:
+{{ toYaml .Values.postgresql.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.postgresql.schedulerName }}
+      schedulerName: "{{ .Values.postgresql.schedulerName }}"
+      {{- end }}
+      containers:
+      - name: {{ template "sonarqube.postgresql.fullname" . }}
+        image: "{{ .Values.postgresql.image }}:{{ .Values.postgresql.imageTag }}"
+        imagePullPolicy: {{ default "" .Values.postgresql.imagePullPolicy | quote }}
+        args:
+          {{- range $key, $value := default dict .Values.postgresql.postgresConfig }}
+          - -c
+          - '{{ $key | snakecase }}={{ $value }}'
+          {{- end }}
+        env:
+        - name: POSTGRESQL_USER
+          value: {{ default "postgres" .Values.postgresql.postgresUser | quote }}
+        - name: POSTGRESQL_DATABASE
+          value: {{ default "" .Values.postgresql.postgresDatabase | quote }}
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "sonarqube.postgresql.fullname" . }}
+              key: postgres-password
+        - name: POD_IP
+          valueFrom: { fieldRef: { fieldPath: status.podIP } }
+        ports:
+        - name: postgresql
+          containerPort: 5432
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
+          initialDelaySeconds: {{ .Values.postgresql.probes.liveness.initialDelay }}
+          timeoutSeconds: {{ .Values.postgresql.probes.liveness.timeoutSeconds }}
+          failureThreshold: {{ .Values.postgresql.probes.liveness.failureThreshold }}
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
+          initialDelaySeconds: {{ .Values.postgresql.probes.readiness.initialDelay }}
+          timeoutSeconds: {{ .Values.postgresql.probes.readiness.timeoutSeconds }}
+          periodSeconds: {{ .Values.postgresql.probes.readiness.periodSeconds }}
+        resources:
+{{ toYaml .Values.postgresql.resources | indent 10 }}
+        volumeMounts:
+        - name: data
+          mountPath: {{ .Values.postgresql.persistence.mountPath }}
+          subPath: {{ .Values.postgresql.persistence.subPath }}
+        {{- if .Values.postgresql.usePasswordFile }}
+        - name: password-file
+          mountPath: /conf
+          readOnly: true
+        {{- end }}
+      volumes:
+      - name: data
+      {{- if .Values.postgresql.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.postgresql.persistence.existingClaim | default (include "sonarqube.postgresql.fullname" .) }}
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      {{- if .Values.postgresql.usePasswordFile }}
+      - name: password-file
+        secret:
+          secretName: {{ template "sonarqube.postgresql.fullname" . }}
+          items:
+            - key: postgres-password
+              path: postgres-password
+      {{- end }}
+      {{- if .Values.postgresql.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.postgresql.imagePullSecrets }}
+      {{- end }}
