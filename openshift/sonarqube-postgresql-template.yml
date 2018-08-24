@@ -227,7 +227,7 @@ objects:
         - postgresql
         from:
           kind: ImageStreamTag
-          name: postgresql:9.5
+          name: postgresql:9.6
           namespace: openshift
       type: ImageChange
     - type: ConfigChange
@@ -253,7 +253,7 @@ objects:
         storage: ${SONAR_VOLUME_CAPACITY}
 parameters:
 - displayName: SonarQube version
-  value: "6.7"
+  value: "7.1"
   name: SONARQUBE_VERSION
   required: true
 - description: Password for SonarQube Server PostgreSQL backend
