@@ -1,0 +1,11 @@
+sudo: required
+
+services:
+  - docker
+
+jobs:
+  include:
+    - script: make test
+      if: branch != master
+    - script: make publish
+      if: branch = master

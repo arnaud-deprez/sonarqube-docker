@@ -1,4 +1,4 @@
-# Sonarqube image
+# Sonarqube image [![Build Status](https://travis-ci.com/arnaud-deprez/sonarqube-docker.svg?branch=master)](https://travis-ci.com/arnaud-deprez/sonarqube-docker)
 
 This is based on the [official SonarQube image](https://github.com/SonarSource/docker-sonarqube) but it's compatible with Openshift permission policy.
 
@@ -12,20 +12,18 @@ Once it is done, you can run the following:
 ```sh
 namespace=cicd
 oc new-project $namespace
-# install objects
-helm upgrade -i --set ingress.enabled=true --set ingress.hosts={"<ingress_hostname>"} sonarqube charts/sonarqube
+# configure builds
+helm template --name sonarqube --set nameOverride=sonarqube charts/openshift-build | oc apply -f -
 # trigger builds
 oc start-build sonarqube-docker
+# deploy
+helm template --name sonarqube -f charts/openshift-build/values.yaml --set ingress.enabled=true --set ingress.hosts={"<ingress_hostname>"} charts/sonarqube | oc apply -f -
 ```
 
 For example, with `minishift` you can setup the hostname with:
 
 ```sh
-namespace=cicd
-oc new-project $namespace
-helm upgrade -i --set ingress.enabled=true --set ingress.hosts={sonarqube-cicd.$(minishift ip).nip.io} sonarqube charts/sonarqube
-# trigger builds
-oc start-build sonarqube-docker
+helm template --name sonarqube -f charts/openshift-build/values.yaml --set ingress.enabled=true --set ingress.hosts={sonarqube-cicd.$(minishift ip).nip.io} charts/sonarqube | oc apply -f -
 ```
 
 ## Setup with openshift templates

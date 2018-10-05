@@ -1,4 +1,3 @@
-{{- if eq "openshift" .Values.deployment.type -}}
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -40,4 +39,3 @@ spec:
       forcePull: true
     type: Docker
   triggers: []
-{{- end }}

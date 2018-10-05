@@ -1,0 +1,7 @@
+build:
+  git:
+    uri: "https://github.com/arnaud-deprez/sonarqube-docker.git"
+  contextDir: "."
+image:
+  repository: 172.30.1.1:5000/cicd/sonarqube
+  tag: 7.1-alpine

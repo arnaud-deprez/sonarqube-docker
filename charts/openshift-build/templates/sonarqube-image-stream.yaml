@@ -1,4 +1,3 @@
-{{- if eq "openshift" .Values.deployment.type -}}
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
@@ -7,4 +6,3 @@ metadata:
     build: sonarqube
   name: {{ regexSplit "/" .Values.image.repository -1 | last | quote }}
 spec: {}
-{{- end }}
